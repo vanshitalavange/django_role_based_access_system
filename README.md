@@ -23,7 +23,7 @@
 ### Viewer actions
 - View API's
 
-### Conditions to be satisfied
+### Fulfills below conditions
 1. Add user: Add user and map the role for the user and the API’s the user can access.
 2. Remove user: Remove user and the mapping of the role and API’s the user can access.
 3. Update user: Update the role and the mapping of the API’s the user can access.
