@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+
+</head>
+<body>
+
+    <h2>Login</h2>
+    <form id="form-div" method="post">
+        {% csrf_token %}
+        {{form.as_p}}
+        <button type="submit">Login</button>
+    </form>
+
+    <p id="error"></p>
+    <p id="message"></p>
+    
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        form = document.getElementById('form-div')
+        error = document.getElementById('error')
+        message = document.getElementById('message')
+
+        form.addEventListener('submit',async (event) => {
+            event.preventDefault()
+
+            try{
+            
+                const formData = new FormData(form);
+                const data = {};
+                formData.forEach((value, key) => data[key] = value);
+
+                data_r = JSON.stringify(data)
+                const response = await axios.post('/login/',data_r)
+                console.log(response.data)
+
+                if(response.data.type == 'success'){
+                    localStorage.setItem('token',response.data.tokens.access)
+                    window.location.href = '/dashboard/'
+                }else{
+                    error.innerText = response.data.error
+                }
+                
+            }catch(error){
+                console.log(error)
+            }
+           
+        })
+    </script>
+</body>
+</html>

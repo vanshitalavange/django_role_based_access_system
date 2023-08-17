@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RBAC</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body{
+            display: flex;
+            flex-direction: column;
+            margin-top: 3rem;
+            align-items: center;
+
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            display: none;
+            margin-left: 5rem;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background-color: cadetblue;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        .btn-decent {
+            background-color: #ddd;
+            color: #333;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            cursor: pointer;
+            transition: background-color 0.2s ease-in-out;
+        }
+
+        .btn-decent:hover {
+            background-color: #aaaaaa;
+        }
+        .btn-decent:active{
+            border:none
+        }
+
+    </style>
+</head>
+<body>
+
+    <h2>SERVICES</h2>
+    <br/>
+   
+
+    <div>
+        <button class="btn-decent" onclick="makeGetRequest('/user/add/')">CREATE USER</button>
+        <button class="btn-decent" onClick="makeGetRequest('/user/update/')">UPDATE USER</button>
+        <button class="btn-decent" onclick="makeGetRequest('/user/delete/')">DELETE USER</button>
+        <button class="btn-decent" onclick="makeGetRequest('/api/add/')">ADD API</a></button>
+        <button class="btn-decent" onclick="makeGetRequest('/api/update/')">UPDATE API</button>
+        <button class="btn-decent" onclick="makeGetRequest('/api/delete/')">DELETE API</button>
+        <button class="btn-decent" onclick="makeGetRequest('/api/all/')">VIEW ALL API</button>
+        <button class="btn-decent" onclick="makeGetRequest('/user/api/')">VIEW API's CREATED BY YOU</button>
+        <button class="btn-decent" onclick="makeGetRequest('/map/api/')">MAP API TO USER</button>
+        <button class="btn-decent" onclick="makeGetRequest('/get/map/api/')">MAPPED APIs</button>
+        <button class="btn-decent" onclick="makeGetRequest('/unmap/user/')">UNMAP USER</button>    
+
+    </div>
+    <br/>
+
+    
+    <table id="api-data-table">
+        <tr>
+            <th>id</th>
+            <th>name</th>
+            <th>description</th>
+            <th>endpoint</th>
+            <th>method</th>
+            <th>mapped_users</th>
+        </tr>
+        <tbody id="api-table-body"></tbody>
+    </table>
+    
+    <p id="error"></p>
+
+    <button class="btn btn-outline-primary btn-decent" onclick="logout()">LOGOUT</button>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+    <script>
+
+
+        error = document.getElementById('error')
+        apiTableBody = document.getElementById('api-table-body')
+        apiTable = document.getElementById('api-data-table')
+
+        const logout = () => {
+            localStorage.removeItem('token')
+            window.location.href = '/login'
+        }
+        const makeGetRequest = async (urlPath) => {
+            token = localStorage.getItem('token')
+            
+            try{
+                const response = await axios.get(urlPath,{
+                    headers:{
+                        'Authorization':`Bearer ${token}`
+                    }}
+                )
+
+                
+                if(response.data.type === "failure"){
+                    error.innerText = response.data.error
+                    apiTable.style.display = "none"
+                    
+                }else if(response.data.type === "success" && (urlPath === '/api/all/' || urlPath === '/user/api/' || urlPath === '/get/map/api/')){
+                    
+                    let tableContent = "";
+                    const arr = response.data.detail
+
+                    apiTable.style.display = "block"
+
+                    arr.map((item) => {
+                        tableContent += `
+                            <tr>
+                                <td>${item.id}</td>
+                                <td>${item.name}</td>
+                                <td>${item.description}</td>
+                                <td>${item.endpoint}</td>
+                                <td>${item.method}</td>
+                                <td>${item.mapped_users}</td>
+                            </tr>`;
+                    });
+
+                    apiTableBody.innerHTML = tableContent;
+                    error.innerText = ""
+                }
+                else{
+                    window.location.href = response.data.redirectUrl
+                }
+                
+
+            }catch(error){
+                console.log(error)
+            }
+        }
+
+    const onDocumentLoad = () => {
+            const token = localStorage.getItem('token')
+            if(!token){
+                window.location.href="/login/"
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', onDocumentLoad);
+
+        
+    </script>
+
+</body>
+</html>

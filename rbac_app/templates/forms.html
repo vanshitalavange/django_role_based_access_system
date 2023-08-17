@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: cadetblue;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    {% if info.data_list %}
+        <h3>Existing Data</h3>
+        <table>
+            <tr>
+                {% for col_name in info.columns %}
+                <th>{{col_name}}</th>
+                {% endfor %}
+            </tr>
+            {% for data in info.data_list %}
+                <tr>
+                       {% for key,value in data.items %}
+                        {% if key in info.columns %}
+                            <td>{{value}}</td>
+                        {% endif %}
+                       {% endfor %}
+                </tr>
+            {% endfor %}
+        </table>
+    {% endif %}
+
+    {% if form %}
+        <h2>{{info.button_name}}</h2>
+        <form id="my-form" method="post">
+            {% csrf_token %}
+            {{form.as_p}}
+            <button type="submit">{{info.button_name}}</button>
+        </form>
+    {% endif %}
+
+    <p id="message"></p>
+    <pre id="data"></pre>
+    <p id="error"></p>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        
+        const form = document.getElementById('my-form')
+        const message = document.getElementById("message")
+        const error = document.getElementById('error')
+        const data = document.getElementById("data")
+        const urlPath = "{{info.url_path}}"
+        const requestMethod = "{{info.request_method}}"
+
+        form.addEventListener('submit',async (event) => {
+
+            event.preventDefault()
+            const formData = new FormData(form)
+            const data_json = {}
+            formData.forEach((value, key) => data_json[key] = value)
+
+            try{
+
+                const token = localStorage.getItem('token')
+                const config = {
+                    url: urlPath,
+                    method: requestMethod,
+                    headers:{
+                        'Authorization':`Bearer ${token}`
+                    },
+                    data:data_json
+                }
+                const response = await axios(config)
+                
+                if(response.data.type == "success"){
+                    alert(response.data.message)
+                    location.reload()
+                }else{
+                    
+                    console.log(response.data.error)
+                    error.innerText = response.data.error
+                }
+
+            }catch(error){
+                console.log(error)
+            }
+
+        })
+
+        const onDocumentLoad = () => {
+            const token = localStorage.getItem('token')
+            if(!token){
+                window.location.href="/login/"
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', onDocumentLoad);
+
+    </script>
+
+</body>
+</html>
